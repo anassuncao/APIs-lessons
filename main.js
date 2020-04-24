@@ -1,14 +1,14 @@
-const baseURL = "https://ci-swapi.herokuapp.com/api/";
+//const baseURL = "https://ci-swapi.herokuapp.com/api/"; - tivemos que apagar isto porque quando fizemos o código para a paginação deu um erro relacionado com o URL.
 
 //var xhr = new XMLHttpRequest(); //cria um novo instance da função HMLHttpRequest. Foi comented out para aprendermos a função Callback
 // var data; //Foi criada para armazenar e podermos depois manipular o conteúdo do objecto a que acedemos com a última função. Foi retirada depois para aprendermos a função Callback
 
 //Para aprender o Callback apagámos a variável data e criámos a seguinte função: com o código e variáveis que usámos antes:
-function getData(type, cb) { //cb significa Callback
+function getData(url, cb) { //cb significa Callback
   var xhr = new XMLHttpRequest();
 
   //xhr.open("GET", "https://ci-swapi.herokuapp.com/api/"); //Indica que queremos aceder (GET) a info no site ci-swapi.
-  xhr.open("GET", baseURL + type + "/"); //Tiramos daqui o link e criamos uma constante para o colocar fora da função e substituimos o argumento que ele estava a preencher pelo que lá está agora a seguir à vírgula.
+  xhr.open("GET", url); //Tiramos daqui o link e criamos uma constante para o colocar fora da função e substituimos o argumento que ele estava a preencher pelo que lá está agora a seguir à vírgula.
   xhr.send();
 
   xhr.onreadystatechange = function () {
@@ -29,12 +29,28 @@ function getTableHeaders(obj) {
     return `<tr>${tableHeaders}</tr>`;
 }
 
+function generatePaginationButtons(next, prev) {
+    if(next && prev) {
+        return `<button onclick="writeToDocument('${prev}')">Previous</button>
+                <button onclick="writeToDocument('${next}')">Next</button>`;
+    } else if (next && !prev) {
+        return `<button onclick="writeToDocument('${next}')">Next</button>`;
+    } else if (!next && prev) {
+        return `<button onclick="writeToDocument('${prev}')">Previous</button>`;
+    }
+}
 
-function writeToDocument(type) {
+function writeToDocument(url) {
     var tableRows = [];
     var el = document.getElementById("data");//criar esta variável permite armazenar aqui os dados para que depois possamos usar o seguinte para limpar o ecrã sempre que clicamos no botão.
-    el.innerHTML = ""; //Isto limpa o ecrã cada vez que o botão é clicado. Assim os resultados não acumulam sempre que clicamos num botão.
-    getData(type, function(data) {
+    //el.innerHTML = ""; //Isto limpa o ecrã cada vez que o botão é clicado. Assim os resultados não acumulam sempre que clicamos num botão.
+    getData(url, function(data) {
+
+        var pagination;
+        if (data.next || data.previous) {
+            pagination = generatePaginationButtons(data.next, data.previous)
+        } //este bocadinho desde a var pagination permite organizar a info por páginas.
+
         data = data.results;
         var tableHeaders = getTableHeaders(data[0]);
 
@@ -51,7 +67,7 @@ function writeToDocument(type) {
            // el.innerHTML += "<p>" + item.name + "</p>";
         });
 
-        el.innerHTML = `<table>${tableHeaders}${tableRows}</table>`;
+        el.innerHTML = `<table>${tableHeaders}${tableRows}</table>${pagination}`.replace(/,/g, ""); //Este último bocadinho serve para procurarmos todas as vírgulas e substituirmo-las por espaços.
     }); //Para isto funcionar temos de fazer algumas mudanças no código acima. Assim, vou comment out o que fiz antes para não perder a informação e reescrever.
 }
 
